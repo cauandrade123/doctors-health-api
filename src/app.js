@@ -43,7 +43,7 @@ function encerrar(sinal) {
             await pool.end();
             process.exit(0);
         } catch (erro) {
-            logger.error('Falha ao encerrar', descreverErro(erro));
+            logger.error('Falha ao encerrar', { erro: descreverErro(erro) });
             process.exit(1);
         }
     });

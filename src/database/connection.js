@@ -7,7 +7,7 @@ export function criarPool(config) {
         waitForConnections: true,
         connectionLimit: 10,
         // Fila limitada: sob sobrecarga a API responde erro em vez de acumular requisições na memória.
-        queueLimit: 50,
+        queueLimit: 200,
         connectTimeout: 10_000,
         typeCast(field, next) {
             if (field.type === 'TINY' && field.length === 1) return field.string() === '1';

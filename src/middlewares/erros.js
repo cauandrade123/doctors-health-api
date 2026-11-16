@@ -28,6 +28,8 @@ function classificar(erro) {
     if (erro?.type === 'entity.too.large') return [413, 'Corpo da requisição muito grande.'];
     if (erro?.type === 'entity.parse.failed') return [400, 'JSON inválido.'];
     if (erro?.expose && erro.status >= 400 && erro.status < 500) return [erro.status, 'Requisição inválida.'];
+    // Fila do pool cheia: o mysql2 sinaliza apenas pela mensagem, sem código de erro.
+    if (erro?.message === 'Queue limit reached.') return [503, 'Serviço ocupado. Tente novamente.'];
     return ERROS_DO_BANCO[erro?.code] ?? [500, 'Erro interno do servidor.'];
 }
 
@@ -40,7 +42,7 @@ export function tratarErros(erro, req, res, next) {
     const [status, mensagem] = classificar(erro);
 
     if (status >= 500) {
-        logger.error('Erro inesperado', { requestId: req.id, ...descreverErro(erro) });
+        logger.error('Erro inesperado', { requestId: req.id, erro: descreverErro(erro) });
     }
     if (res.headersSent) {
         res.destroy();

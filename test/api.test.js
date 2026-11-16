@@ -356,6 +356,14 @@ describe('erros, limites e cabeçalhos', () => {
         await api.fechar();
     });
 
+    test('sobrecarga do banco (fila do pool cheia ou deadlock) vira 503', async () => {
+        const erros = [new Error('Queue limit reached.'), Object.assign(new Error('Deadlock'), { code: 'ER_LOCK_WAIT_TIMEOUT', sqlState: '40001' })];
+        const api = await subirApi({ pool: poolFalso(() => { throw erros.shift(); }) });
+        assert.equal((await api.pedir('GET', '/pegardata', { token: tokenAdmin() })).status, 503);
+        assert.equal((await api.pedir('GET', '/pegardata', { token: tokenAdmin() })).status, 503);
+        await api.fechar();
+    });
+
     test('corpo acima de 10 kB e JSON inválido são recusados', async () => {
         const api = await subirApi();
         assert.equal((await api.pedir('POST', '/verificar-cpf', { corpo: { cpf: 'x'.repeat(11_000) } })).status, 413);
