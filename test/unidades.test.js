@@ -35,7 +35,7 @@ describe('config', () => {
 
     test('recusa segredo JWT ausente, curto ou repetido', () => {
         assert.throws(() => carregarConfig({ ...AMBIENTE_VALIDO, JWT_SECRET: undefined }), /JWT_SECRET é obrigatória/);
-        assert.throws(() => carregarConfig({ ...AMBIENTE_VALIDO, JWT_SECRET: 'ACESSOADMIN' }), /ao menos 32 caracteres/);
+        assert.throws(() => carregarConfig({ ...AMBIENTE_VALIDO, JWT_SECRET: 'segredo-curto' }), /ao menos 32 caracteres/);
         assert.throws(() => carregarConfig({ ...AMBIENTE_VALIDO, JWT_SECRET2: 'a'.repeat(32) }), /devem ser diferentes/);
     });
 
