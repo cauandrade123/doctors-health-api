@@ -21,6 +21,11 @@ try {
     process.exit(1);
 }
 
+const integracoesAusentes = Object.keys(config.integracoes).filter((nome) => !config.integracoes[nome]);
+if (integracoesAusentes.length > 0) {
+    logger.warn('Integrações sem chave configurada: as rotas correspondentes responderão 503', { integracoes: integracoesAusentes });
+}
+
 const pool = criarPool(config.mysql);
 const transporteEmail = criarTransporteSmtp(config.email);
 const servidor = criarApp({ config, pool, transporteEmail }).listen(config.porta, () => {

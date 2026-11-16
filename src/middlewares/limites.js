@@ -29,5 +29,7 @@ export function criarLimites() {
         // Disparo de e-mail pelo paciente e pelo painel.
         emailPaciente: limitar(60 * MINUTO, 5),
         emailAdmin: limitar(60 * MINUTO, 60),
+        // Rotas que consomem a cota de serviços de terceiros (validações e chatbot).
+        integracoes: limitar(15 * MINUTO, 60),
     };
 }

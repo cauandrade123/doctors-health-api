@@ -64,6 +64,12 @@ export function carregarConfig(env = process.env) {
             usuario: obrigatoria('EMAIL_USER'),
             senha: obrigatoria('EMAIL_PASS'),
         },
+        // Opcionais: sem a chave, a rota correspondente responde 503 e o resto da API funciona.
+        integracoes: {
+            wit: ler('WIT_AI_TOKEN'),
+            veriphone: ler('VERIPHONE_API_KEY'),
+            hunter: ler('HUNTER_API_KEY'),
+        },
     };
 
     if (config.jwt.segredoAdmin && config.jwt.segredoAdmin === config.jwt.segredoPaciente) {

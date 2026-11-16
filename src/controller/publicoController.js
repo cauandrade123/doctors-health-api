@@ -7,7 +7,7 @@ import * as validar from '../utils/validacao.js';
  * Login do painel e fluxo de agendamento do paciente, que não exige conta.
  * Por não haver autenticação, toda rota daqui declara o seu limite de requisições.
  */
-export function criarRotasPublicas({ repositorio, auth, limites }) {
+export function criarRotasPublicas({ repositorio, auth, integracoes, limites }) {
     const rotas = Router();
 
     rotas.post('/login', limites.login, assincrono(async (req, res) => {
@@ -111,6 +111,26 @@ export function criarRotasPublicas({ repositorio, auth, limites }) {
         });
 
         res.json({ confirmação: 'Consulta agendada!', pacienteId: id });
+    }));
+
+    // ---- Serviços de terceiros (as chaves ficam no servidor) ----
+
+    rotas.post('/validar-telefone', limites.integracoes, assincrono(async (req, res) => {
+        const telefone = validar.telefoneNovo(req.body.telefone);
+
+        res.json({ valido: await integracoes.telefoneEhValido(telefone.replace(/\D/g, '')) });
+    }));
+
+    rotas.post('/validar-email', limites.integracoes, assincrono(async (req, res) => {
+        const email = validar.email(req.body.email);
+
+        res.json({ status: await integracoes.situacaoDoEmail(email) });
+    }));
+
+    rotas.post('/bot/interpretar', limites.integracoes, assincrono(async (req, res) => {
+        const mensagem = validar.texto(req.body.mensagem, 'mensagem', { max: 280 });
+
+        res.json({ entities: await integracoes.interpretarMensagem(mensagem) });
     }));
 
     return rotas;

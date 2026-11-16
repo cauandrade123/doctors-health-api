@@ -13,6 +13,7 @@ export const CONFIG = {
     mysql: {},
     jwt: { segredoAdmin: 'segredo-admin-de-teste-'.padEnd(40, 'a'), segredoPaciente: 'segredo-paciente-de-teste-'.padEnd(40, 'p') },
     email: { host: 'smtp.teste', port: 465, usuario: 'clinica@teste.dev', senha: 'x' },
+    integracoes: { wit: 'token-wit-de-teste', veriphone: 'chave-veriphone-de-teste', hunter: 'chave-hunter-de-teste' },
 };
 
 export const tokenAdmin = (opcoes = {}) =>
@@ -33,6 +34,20 @@ export function poolFalso(responder = () => []) {
     };
 }
 
+/**
+ * Substituto do `fetch` usado para serviços de terceiros: registra cada chamada e devolve
+ * o JSON de `responder(url)`. Garante que nenhum teste acesse a internet.
+ */
+export function servicoExternoFalso(responder = () => ({})) {
+    const buscar = async (url, opcoes) => {
+        buscar.chamadas.push({ url: new URL(url), opcoes });
+        const corpo = await responder(new URL(url));
+        return { ok: true, status: 200, json: async () => corpo };
+    };
+    buscar.chamadas = [];
+    return buscar;
+}
+
 /** Limites desligados, para cenários que disparam muitas requisições de propósito. */
 export const SEM_LIMITES = new Proxy({}, { get: () => (req, res, next) => next() });
 
@@ -47,8 +62,8 @@ export function transporteFalso() {
 }
 
 /** Sobe a API e devolve `pedir(metodo, caminho, { corpo, token, cabecalhos })` → `{ status, corpo, cabecalhos }`. */
-export async function subirApi({ pool = poolFalso(), transporteEmail = transporteFalso(), config = CONFIG, limites } = {}) {
-    const servidor = criarApp({ config, pool, transporteEmail, limites }).listen(0);
+export async function subirApi({ pool = poolFalso(), transporteEmail = transporteFalso(), config = CONFIG, limites, buscar = servicoExternoFalso() } = {}) {
+    const servidor = criarApp({ config, pool, transporteEmail, limites, buscar }).listen(0);
     await new Promise((resolver) => servidor.once('listening', resolver));
     // Se um teste falhar antes de chamar fechar(), o servidor esquecido não segura o processo.
     servidor.unref();
@@ -78,5 +93,5 @@ export async function subirApi({ pool = poolFalso(), transporteEmail = transport
         servidor.close(resolver);
         servidor.closeAllConnections();
     });
-    return { pedir, fechar, pool, transporteEmail };
+    return { pedir, fechar, pool, transporteEmail, buscar };
 }

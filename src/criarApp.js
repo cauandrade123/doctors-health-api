@@ -11,6 +11,7 @@ import { criarLimites } from './middlewares/limites.js';
 import { criarRepositorio } from './repository/consultaRepository.js';
 import { criarAuthService } from './services/authService.js';
 import { criarEmailService } from './services/emailService.js';
+import { criarIntegracoes } from './services/integracoesService.js';
 import { logger } from './utils/logger.js';
 
 /**
@@ -35,14 +36,15 @@ function registrarRequisicao(req, res, next) {
 }
 
 /**
- * Monta a aplicação Express. O pool do MySQL, o transporte de e-mail e os limites de
- * requisição são recebidos prontos para que os testes possam exercitar a API inteira
- * sem infraestrutura real.
+ * Monta a aplicação Express. O pool do MySQL, o transporte de e-mail, os limites de
+ * requisição e a função de requisição HTTP a serviços externos são recebidos prontos
+ * para que os testes possam exercitar a API inteira sem infraestrutura real.
  */
-export function criarApp({ config, pool, transporteEmail, limites = criarLimites() }) {
+export function criarApp({ config, pool, transporteEmail, limites = criarLimites(), buscar = fetch }) {
     const repositorio = criarRepositorio(pool);
     const auth = criarAuthService({ repositorio, config });
     const email = criarEmailService({ transporte: transporteEmail, remetente: config.email.usuario });
+    const integracoes = criarIntegracoes({ chaves: config.integracoes, buscar });
     const autenticacao = criarAutenticacao(auth);
 
     const app = express();
@@ -68,7 +70,7 @@ export function criarApp({ config, pool, transporteEmail, limites = criarLimites
         }
     }));
 
-    app.use(criarRotasPublicas({ repositorio, auth, limites }));
+    app.use(criarRotasPublicas({ repositorio, auth, integracoes, limites }));
     app.use(criarRotasDoPaciente({ repositorio, email, autenticacao, limites }));
     // Deve ser o último router: tudo o que chega até ele exige token de administrador.
     app.use(criarRotasAdministrativas({ repositorio, email, autenticacao, limites }));

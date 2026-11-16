@@ -33,6 +33,7 @@ A API valida a configuração ao iniciar e **não sobe** se algo obrigatório fa
 | `EMAIL_USER`, `EMAIL_PASS` | sim | Conta SMTP (no Gmail, uma senha de app) |
 | `EMAIL_HOST`, `EMAIL_PORT` | não (`smtp.gmail.com`, 465) | Servidor SMTP |
 | `CORS_ORIGINS` | em produção | Origens do frontend separadas por vírgula (ou `*`) |
+| `WIT_AI_TOKEN`, `VERIPHONE_API_KEY`, `HUNTER_API_KEY` | não | Chaves dos serviços de terceiros; sem a chave, a rota correspondente responde `503` |
 | `PORT` | não (3000) | Porta HTTP (`PORTA` também é aceita) |
 | `TRUST_PROXY` | não (0) | Quantidade de proxies reversos na frente da API |
 | `NODE_ENV` | não | `production` ativa as exigências acima |
@@ -55,7 +56,7 @@ src/
     publicoController.js     login e fluxo de agendamento do paciente
     pacienteController.js    rotas com token de paciente
     adminController.js       painel; todas exigem token de administrador
-  services/                regras: autenticação/tokens e e-mail
+  services/                regras: autenticação/tokens, e-mail e serviços de terceiros
   repository/              acesso ao MySQL
   middlewares/             autenticação, limites de requisição e tratamento de erros
   utils/                   validação de entrada, hash de senha e logger
@@ -80,6 +81,8 @@ detalhes apenas no log.
 | `POST /autocadastro` | Cadastra o paciente e retorna um token (expira em 5 h); `409` se CPF/telefone já existem |
 | `POST /consultas` | Cria a consulta; `409` se o horário já tem consulta ou o paciente tem outra em aberto |
 | `POST /cadastrado` | Registra o retorno de um paciente já cadastrado |
+| `POST /validar-telefone`, `POST /validar-email` | Validação por serviço externo: `{ valido }` e `{ status }` |
+| `POST /bot/interpretar` | Entidades reconhecidas em uma mensagem do chatbot: `{ entities }` |
 | `GET /health` | Verificação de disponibilidade (inclui o banco) |
 
 **Paciente** — `Authorization: Bearer <token do /autocadastro>`
@@ -101,6 +104,10 @@ detalhes apenas no log.
 | `DELETE /remover/:id_agenda` | Remove um horário sem consulta vinculada (`409` caso contrário) |
 | `GET /puxarfinanceiro/:ano`, `POST /financeiro` | Faturamento por mês |
 | `POST /enviar-call` | E-mail com o link da teleconsulta (somente `https://meet.jit.si/...`) |
+
+As rotas de validação e do chatbot existem para que as chaves dos serviços de terceiros
+(veriphone.io, hunter.io e wit.ai) fiquem somente no servidor: o navegador chama a API, e a
+API chama o serviço, com destino fixo, limite de 5 s e limite de requisições por IP.
 
 ## Senha do administrador
 
