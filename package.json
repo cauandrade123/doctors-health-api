@@ -1,27 +1,33 @@
 {
-  "name": "apitcc",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./src/app.js"
-
-  },
-  "keywords": [],
+  "name": "doctors-health-api",
+  "version": "2.0.0",
+  "description": "API da clínica Doctor's Health: agendamento de consultas, painel administrativo e notificações por e-mail.",
+  "private": true,
   "type": "module",
-  "author": "",
+  "main": "src/app.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node ./src/app.js",
+    "dev": "node --watch ./src/app.js",
+    "test": "node --test",
+    "lint": "eslint .",
+    "hash-senha": "node ./scripts/gerar-hash-senha.js"
+  },
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "cors": "^2.8.5",
-    "date-fns": "^4.1.0",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.0",
-    "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.2",
-    "nodemailer": "^6.9.15",
-    "nodemon": "^3.1.4",
-    "request": "^2.88.2"
+    "cors": "^2.8.6",
+    "express": "^4.22.3",
+    "express-rate-limit": "^8.7.4",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.24.6",
+    "nodemailer": "^10.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "eslint": "^10.15.0",
+    "globals": "^17.0.0"
   }
 }
